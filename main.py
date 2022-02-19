@@ -37,34 +37,35 @@ def send_message(message, link, q, count, result_type='recent'):
     result = search_tweets(q, 100, result_type)
     count_sended = 0
     for tweet in result["statuses"]:
-        message = f"Olá {tweet['user']['name']}, {message} {link}"
+        message_to_send = f"Olá {tweet['user']['name']}, {message} {link}"
         if int(tweet["user"]["id"]) not in sended_users:
-            if int(tweet["user"]["id"]) not in [int(x) for x in sended]:
-                if tweet["user"]["entities"].get('url') is not None:
-                    try:
-                        t.direct_messages.events.new(
-                        _json={
-                            "event": {
-                                "type": "message_create",
-                                "message_create": {
-                                    "target": {
-                                        "recipient_id": tweet["user"]["id"]},
-                                    "message_data": {
-                                        "text": message}}}})
-                        print(f"Mensagem enviada para {tweet['user']['name']}.")
-                        sended.append(tweet["user"]["id"])
-                        count_sended += 1
-                        seconds = random.randint(12, 70)
-                        print(f"Aguardando {seconds} segundos para o próximo envio.")
-                        time.sleep(seconds)
-                    except Exception as ex:
-                        print(ex)
-                    if count_sended == count:
-                        break
-
-    with open(SENDED_USERS_FILE, 'a') as my_file:
-        my_file.writelines(sended)
-
+            if int(tweet["user"]["id"]) not in sended:
+                try:
+                    t.direct_messages.events.new(
+                    _json={
+                        "event": {
+                            "type": "message_create",
+                            "message_create": {
+                                "target": {
+                                    "recipient_id": tweet["user"]["id"]},
+                                "message_data": {
+                                    "text": message_to_send}}}})
+                    print(f"Mensagem enviada para {tweet['user']['name']}.")
+                    with open(SENDED_USERS_FILE, 'a') as my_file:
+                        my_file.write(str(tweet["user"]["id"]))
+                    sended.append(int(tweet["user"]["id"]))
+                    count_sended += 1
+                    seconds = random.randint(12, 70)
+                    print(f"Aguardando {seconds} segundos para o próximo envio.")
+                    time.sleep(seconds)
+                except Exception as ex:
+                    print(ex)
+                    if ex.e.code == 403:
+                        with open(SENDED_USERS_FILE, 'a') as my_file:
+                            my_file.write(str(tweet["user"]["id"])+'\n')
+                        sended.append(int(tweet["user"]["id"]))
+                if count_sended == count:
+                    break
 
 total = 0
 
