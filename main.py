@@ -55,7 +55,7 @@ def send_message(message, link, q, count, result_type='recent'):
                         my_file.write(str(tweet["user"]["id"]))
                     sended.append(int(tweet["user"]["id"]))
                     count_sended += 1
-                    seconds = random.randint(12, 70)
+                    seconds = random.randint(70, 200)
                     print(f"Aguardando {seconds} segundos para o próximo envio.")
                     time.sleep(seconds)
                 except Exception as ex:
@@ -77,7 +77,7 @@ while True:
                 os.getenv('MESSAGE'),
                 os.getenv('LINK'),
                 os.getenv('TAG'),
-                40)
+                20)
             print("aguardando 15 minutos para continuar o loop")
             time.sleep(3600)
     except Exception as e:
