@@ -2,6 +2,8 @@ import random
 import time
 
 from twitter import Twitter, OAuth
+
+from db_conn import PostgresConnection
 from twitter_info import *
 
 ALREADY_FOLLOWED_FILE = "already-followed.csv"
@@ -19,68 +21,47 @@ def search_tweets(q, count=100, result_type="recent"):
     return result
 
 
-def send_message(message, link, q, count, result_type='recent'):
-    if not os.path.isfile(SENDED_USERS_FILE):
-        with open(SENDED_USERS_FILE, "w") as out_file:
-            out_file.write("")
-
-    sended_users = set()
-    snd_list = []
-    with open(SENDED_USERS_FILE) as in_file:
-        for line in in_file:
-            snd_list.append(int(line))
-
-    sended_users.update(set(snd_list))
-    del snd_list
-
-    sended = []
+def send_message(message, q, count, postgres_connection, result_type='recent'):
     result = search_tweets(q, 100, result_type)
+    sended_users = postgres_connection.get_all_user_already_in_tag("twitter")
     count_sended = 0
     for tweet in result["statuses"]:
-        message_to_send = f"Olá {tweet['user']['name']}, {message} {link}"
+        message_to_send = f"{message}"
         if int(tweet["user"]["id"]) not in sended_users:
-            if int(tweet["user"]["id"]) not in sended:
-                try:
-                    t.direct_messages.events.new(
-                    _json={
-                        "event": {
-                            "type": "message_create",
-                            "message_create": {
-                                "target": {
-                                    "recipient_id": tweet["user"]["id"]},
-                                "message_data": {
-                                    "text": message_to_send}}}})
-                    print(f"Mensagem enviada para {tweet['user']['name']}.")
-                    with open(SENDED_USERS_FILE, 'a') as my_file:
-                        my_file.write(str(tweet["user"]["id"]))
-                    sended.append(int(tweet["user"]["id"]))
-                    count_sended += 1
-                    seconds = random.randint(70, 200)
-                    print(f"Aguardando {seconds} segundos para o próximo envio.")
-                    time.sleep(seconds)
-                except Exception as ex:
-                    print(ex)
-                    if ex.e.code == 403:
-                        with open(SENDED_USERS_FILE, 'a') as my_file:
-                            my_file.write(str(tweet["user"]["id"])+'\n')
-                        sended.append(int(tweet["user"]["id"]))
-                if count_sended == count:
-                    break
+            try:
+                t.direct_messages.events.new(
+                _json={
+                    "event": {
+                        "type": "message_create",
+                        "message_create": {
+                            "target": {
+                                "recipient_id": tweet["user"]["id"]},
+                            "message_data": {
+                                "text": message_to_send}}}})
+                print(f"Mensagem enviada para {tweet['user']['name']}.")
+                postgres_connection.insert_user_in_table(tweet["user"]["id"], q, message_to_send)
+                sended_users = postgres_connection.get_all_user_already_in_tag("twitter")
+                count_sended += 1
+                seconds = random.randint(70, int(os.getenv('MAX_SECCONDS')))
+                print(f"Aguardando {seconds} segundos para o próximo envio.")
+                time.sleep(seconds)
+            except Exception:
+                postgres_connection.insert_user_in_table(tweet["user"]["id"], q, message_to_send, False)
+            if count_sended == count:
+                break
 
-total = 0
-
-while True:
-    try:
-        print('Começando envio de mensagens com o codigo.')
-        for send in range(0, 24):
-            send_message(
-                os.getenv('MESSAGE'),
-                os.getenv('LINK'),
-                os.getenv('TAG'),
-                20)
-            print("aguardando 15 minutos para continuar o loop")
-            time.sleep(3600)
-    except Exception as e:
-        print(e)
-        break
+try:
+    postgres_connection = PostgresConnection()
+    postgres_connection.create_user_table()
+    print('Começando envio de mensagens.')
+    for send in range(0, 24):
+        send_message(
+            os.getenv('MESSAGE'),
+            os.getenv('TAG'),
+            int(os.getenv('COUNT_PER_ROUND')),
+            postgres_connection)
+        print("aguardando 15 minutos para continuar o loop")
+        time.sleep(3600)
+except Exception as e:
+    print(e)
 
