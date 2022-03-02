@@ -23,7 +23,7 @@ def search_tweets(q, count=100, result_type="recent"):
 
 def send_message(message, q, count, postgres_connection, result_type='recent'):
     result = search_tweets(q, 100, result_type)
-    sended_users = postgres_connection.get_all_user_already_in_tag("twitter")
+    sended_users = postgres_connection.get_all_user_already_in_tag(os.getenv('TAG'))
     count_sended = 0
     for tweet in result["statuses"]:
         message_to_send = f"{message}"
@@ -40,7 +40,7 @@ def send_message(message, q, count, postgres_connection, result_type='recent'):
                                 "text": message_to_send}}}})
                 print(f"Mensagem enviada para {tweet['user']['name']}.")
                 postgres_connection.insert_user_in_table(tweet["user"]["id"], q, message_to_send)
-                sended_users = postgres_connection.get_all_user_already_in_tag("twitter")
+                sended_users = postgres_connection.get_all_user_already_in_tag(os.getenv('TAG'))
                 count_sended += 1
                 seconds = random.randint(70, int(os.getenv('MAX_SECCONDS')))
                 print(f"Aguardando {seconds} segundos para o próximo envio.")
