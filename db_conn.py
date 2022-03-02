@@ -5,7 +5,7 @@ import os
 
 class PostgresConnection:
     def __init__(self):
-        engine = create_engine(os.getenv("DATABASE_URL"))
+        engine = create_engine(os.getenv("DATABASE_URL_WORKING"))
         self.db = scoped_session(sessionmaker(bind=engine))
 
     def create_user_table(self):
