@@ -1,11 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-import os
+
+from twitter_info import DATABASE_URL_WORKING
 
 
 class PostgresConnection:
     def __init__(self):
-        engine = create_engine(os.getenv("DATABASE_URL_WORKING"))
+        engine = create_engine(DATABASE_URL_WORKING)
         self.db = scoped_session(sessionmaker(bind=engine))
 
     def create_user_table(self):
@@ -19,7 +20,7 @@ class PostgresConnection:
         self.db.commit()
 
     def get_all_user_already_in_tag(self, tag):
-        query = "SELECT user_id FROM public.user WHERE tag=:tag and sended is true"
+        query = "SELECT user_id FROM public.user WHERE tag=:tag"
         result = self.db.execute(query, {'tag': tag}).fetchall()
         return [x[0] for x in result]
 
