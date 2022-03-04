@@ -22,7 +22,7 @@ def search_tweets(q, count=100, result_type="recent"):
 
 
 def send_message(message, q, count, postgres_connection, result_type='recent'):
-    result = search_tweets(q, 100, result_type)
+    result = search_tweets(q, USERS_PER_ROUND, result_type)
     sended_users = postgres_connection.get_all_user_already_in_tag(TAG)
     count_sended = 0
     for tweet in result["statuses"]:
