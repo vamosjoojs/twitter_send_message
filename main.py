@@ -25,6 +25,7 @@ def send_message(message, q, count, postgres_connection, result_type='recent'):
     result = search_tweets(q, USERS_PER_ROUND, result_type)
     sended_users = postgres_connection.get_all_user_already_in_tag(TAG)
     count_sended = 0
+    print(f"users in db {sended_users}")
     for tweet in result["statuses"]:
         message_to_send = f"{message}"
         if int(tweet["user"]["id"]) not in sended_users:
