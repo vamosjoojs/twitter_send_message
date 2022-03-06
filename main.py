@@ -61,7 +61,8 @@ try:
             MESSAGE,
             TAG,
             COUNT_PER_ROUND,
-            postgres_connection)
+            postgres_connection,
+            'mixed')
         print("aguardando 15 minutos para continuar o loop")
         time.sleep(3600)
 except Exception as e:
