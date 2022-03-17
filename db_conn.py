@@ -27,5 +27,14 @@ class PostgresConnection:
     def insert_user_in_table(self, user_id, tag, sended_message="", sended=True):
         insert_dict = {"user_id": user_id, "tag": tag, "sended_message": sended_message, "sended": sended}
 
-        self.db.execute(f"""INSERT INTO public."user"(user_id, tag, sended_message, sended) VALUES ({user_id}, '{tag}', '{sended_message}', {sended})""", insert_dict)
-        self.db.commit()
+        try:
+            self.db.execute(f"""INSERT INTO public."user"(user_id, tag, sended_message, sended) VALUES ({user_id}, '{tag}', '{sended_message}', {sended})""", insert_dict)
+            self.db.commit()
+
+        except Exception as ex:
+            self.db.rollback()
+            raise f"Erro ao inserir: {ex}"
+
+
+        
+        
