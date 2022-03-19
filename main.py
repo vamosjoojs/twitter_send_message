@@ -24,6 +24,9 @@ def search_tweets(q, count=100, result_type="recent"):
 def send_message(message, q, count, postgres_connection, result_type='recent'):
     result = search_tweets(q, USERS_PER_ROUND, result_type)
     sended_users = postgres_connection.get_all_user_already_in_tag(TAG)
+
+    print(f"searched results: {len(result['statuses'])}")
+
     count_sended = 0
     for tweet in result["statuses"]:
         message_to_send = f"{message}"
