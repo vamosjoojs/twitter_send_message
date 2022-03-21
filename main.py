@@ -54,7 +54,7 @@ def send_message(message, q, count, postgres_connection, result_type='recent'):
                                     "text": message_to_send}}}})
                     print(f"Mensagem enviada para {tweet['user']['name']}.")
                     postgres_connection.insert_user_in_table(tweet["user"]["id"], q, message_to_send)
-                    sended_users = postgres_connection.get_all_user_already_in_tag(TAG)
+                    sended_users = postgres_connection.get_all_user_sended()
                     count_sended += 1
                     seconds = random.randint(70, MAX_SECCONDS)
                     print(f"Aguardando {seconds} segundos para o próximo envio.")
