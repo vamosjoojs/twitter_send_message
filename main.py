@@ -21,13 +21,13 @@ def search_tweets(q, count=100, result_type="recent"):
     return result
 
 
-def send_message(message, q, count, postgres_connection, result_type='recent'):
+def send_message(message, q, count, postgres_connection):
     count_sended = 0
     second_while = False
     while True:
         if second_while:
             time.sleep(60)
-        result = search_tweets(q, USERS_PER_ROUND, result_type)
+        result = search_tweets(q, USERS_PER_ROUND, RESULT_TYPE)
         sended_users = postgres_connection.get_all_user_sended()
 
         print(f"searched results: {len(result['statuses'])}")
@@ -38,8 +38,6 @@ def send_message(message, q, count, postgres_connection, result_type='recent'):
         for tweet in result["statuses"]:
             second_while = True
             message_to_send = f"{message}"
-            print(f"message: {message_to_send}")
-            
             if int(tweet["user"]["id"]) not in sended_users:
                 print(f"Tentando enviar mensagem para {tweet['user']['name']}.")
                 try:
@@ -64,6 +62,8 @@ def send_message(message, q, count, postgres_connection, result_type='recent'):
                     postgres_connection.insert_user_in_table(tweet["user"]["id"], q, message_to_send, False)
                 if count_sended == count:
                     break
+            else:
+                print("Mensagem ja enviada para esse usuário!")
 
 try:
     postgres_connection = PostgresConnection()
@@ -74,8 +74,7 @@ try:
             MESSAGE,
             TAG,
             COUNT_PER_ROUND,
-            postgres_connection,
-            'mixed')
+            postgres_connection)
         print("aguardando 15 minutos para continuar o loop")
         time.sleep(3600)
 except Exception as e:
