@@ -25,16 +25,17 @@ def send_message(message, q, count, postgres_connection):
     count_sended = 0
     second_while = False
     while True:
+        if count_sended == count:
+            break
         if second_while:
-            time.sleep(60)
+            time.sleep(320)
+        
         result = search_tweets(q, USERS_PER_ROUND, RESULT_TYPE)
         sended_users = postgres_connection.get_all_user_sended()
 
         print(f"searched results: {len(result['statuses'])}")
         print(f"Sended users: {str(len(sended_users))}")
-        if count_sended == count:
-            break
-
+        
         for tweet in result["statuses"]:
             second_while = True
             message_to_send = f"{message}"
