@@ -21,6 +21,13 @@ def search_tweets(q, count=100, result_type="recent"):
     return result
 
 
+def get_trending_topics() -> str:
+    ddf = t.trends.place(_id=23424768)
+    max_tweet_volume = max([x['tweet_volume'] for x in ddf[0]['trends'] if x['tweet_volume'] is not None])
+    trending_target = ''.join([x['name'] for x in ddf[0]['trends'] if x['tweet_volume'] == max_tweet_volume])
+    return trending_target
+
+
 def send_message(message, q, count, postgres_connection):
     count_sended = 0
     second_while = False
@@ -65,14 +72,18 @@ def send_message(message, q, count, postgres_connection):
             else:
                 print("Mensagem ja enviada para esse usuário!")
 
+
 try:
+    target_trending = TAG
+    if USE_TRENDING_TARGET:
+        target_trending = get_trending_topics()
     postgres_connection = PostgresConnection()
     postgres_connection.create_user_table()
     print('Começando envio de mensagens.')
     for send in range(0, 24):
         send_message(
             MESSAGE,
-            TAG,
+            target_trending,
             COUNT_PER_ROUND,
             postgres_connection)
         print("aguardando 15 minutos para continuar o loop")
