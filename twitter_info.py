@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 OAUTH_TOKEN = os.getenv('OAUTH_TOKEN')
 OAUTH_SECRET = os.getenv('OAUTH_SECRET')
@@ -12,4 +13,4 @@ MAX_SECCONDS = int(os.getenv('MAX_SECCONDS'))
 MESSAGE = os.getenv('MESSAGE')
 TAG = os.getenv('TAG')
 RESULT_TYPE = os.getenv('RESULT_TYPE')
-USE_TRENDING_TARGET = os.getenv('USE_TRENDING_TARGET')
+USE_TRENDING_TARGET: Optional[bool] = os.getenv('USE_TRENDING_TARGET')
