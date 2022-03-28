@@ -76,12 +76,12 @@ def send_message(message, q, count, postgres_connection):
 
 try:
     target_trending = TAG
-    if USE_TRENDING_TARGET:
-        target_trending = get_trending_topics()
     postgres_connection = PostgresConnection()
     postgres_connection.create_user_table()
     print('Começando envio de mensagens.')
     for send in range(0, 24):
+        if USE_TRENDING_TARGET:
+            target_trending = get_trending_topics()
         send_message(
             MESSAGE,
             target_trending,
