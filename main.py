@@ -13,11 +13,11 @@ t = Twitter(auth=OAuth(OAUTH_TOKEN, OAUTH_SECRET,
             CONSUMER_KEY, CONSUMER_SECRET))
 
 
-def search_tweets(q, count=100, result_type="recent"):
+def search_tweets(q, count=100, result_type="recent", max_id=None):
     result = t.geo.search(query="BR", granularity="country")
     place_id = result['result']['places'][0]['id']
 
-    result = t.search.tweets(q=f"{q} AND place:{place_id}", result_type=result_type, count=count)
+    result = t.search.tweets(q=f"{q} AND place:{place_id}", result_type=result_type, count=count, max_id=max_id)
     return result
 
 
@@ -28,7 +28,7 @@ def get_trending_topics() -> str:
     return trending_target
 
 
-def send_message(message, q, count, postgres_connection):
+def send_message(message, q, count, postgres_connection, max_id):
     count_sended = 0
     second_while = False
     while True:
@@ -37,7 +37,8 @@ def send_message(message, q, count, postgres_connection):
         if second_while:
             time.sleep(320)
         
-        result = search_tweets(q, USERS_PER_ROUND, RESULT_TYPE)
+        result = search_tweets(q, USERS_PER_ROUND, RESULT_TYPE, max_id)
+        max_id = max([x['id'] for x in result["statuses"]])
         sended_users = postgres_connection.get_all_user_sended()
 
         print(f"searched results: {len(result['statuses'])}")
@@ -72,6 +73,7 @@ def send_message(message, q, count, postgres_connection):
                     break
             else:
                 print("Mensagem ja enviada para esse usuário!")
+    return max_id
 
 
 try:
@@ -79,14 +81,16 @@ try:
     postgres_connection = PostgresConnection()
     postgres_connection.create_user_table()
     print('Começando envio de mensagens.')
+    max_id = None
     for send in range(0, 24):
         if USE_TRENDING_TARGET:
             target_trending = get_trending_topics()
-        send_message(
+        max_id = send_message(
             MESSAGE,
             target_trending,
             COUNT_PER_ROUND,
-            postgres_connection)
+            postgres_connection,
+            max_id)
         print("aguardando 15 minutos para continuar o loop")
         time.sleep(3600)
 except Exception as e:
